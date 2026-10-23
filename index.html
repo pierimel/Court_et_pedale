@@ -25,107 +25,98 @@
         }
         h1 {
             font-size: 1.5rem;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             color: #38bdf8;
         }
-        #gps-status {
-            font-size: 0.85rem;
-            padding: 4px 10px;
-            border-radius: 12px;
-            display: inline-block;
+        .gps-badge {
+            font-size: 0.8rem;
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             background: #334155;
             color: #fbbf24;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            user-select: none;
         }
-        #gps-status.active {
+        .gps-badge.active {
             background: #065f46;
             color: #34d399;
         }
-        #gps-status.error {
+        .gps-badge.error {
             background: #7f1d1d;
             color: #f87171;
+        }
+        .gps-refresh-icon {
+            font-size: 0.9rem;
+            opacity: 0.8;
         }
         .dashboard {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin: 10px 0;
+            margin: 15px 0;
         }
         .card {
             background: #1e293b;
-            padding: 15px;
-            border-radius: 12px;
+            padding: 16px;
+            border-radius: 14px;
             text-align: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
         .card-title {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #94a3b8;
             text-transform: uppercase;
-            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
         }
         .card-value {
             font-size: 1.8rem;
-            font-weight: bold;
+            font-weight: 700;
         }
         .card.full {
             grid-column: span 2;
         }
-        .mode-display {
-            background: #334155;
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 1.1rem;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-        .mode-display.bike {
-            background: #0369a1;
-            color: #e0f2fe;
-        }
-        .mode-display.run {
-            background: #047857;
-            color: #ecfdf5;
-        }
         .btn-container {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
         .big-btn {
             width: 100%;
-            padding: 25px;
-            font-size: 1.5rem;
-            font-weight: bold;
+            padding: 24px;
+            font-size: 1.4rem;
+            font-weight: 800;
             border: none;
             border-radius: 16px;
             cursor: pointer;
             color: white;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            box-shadow: 0 8px 20px rgba(2, 132, 199, 0.3);
             transition: transform 0.1s, background-color 0.2s;
+            letter-spacing: 0.5px;
         }
         .big-btn:active {
             transform: scale(0.97);
         }
-        #btn-toggle {
-            background: linear-gradient(135deg, #0284c7, #0369a1);
-        }
-        .secondary-actions {
-            display: flex;
-            gap: 10px;
-        }
         .small-btn {
-            flex: 1;
-            padding: 12px;
-            font-size: 0.9rem;
+            padding: 10px;
+            font-size: 0.85rem;
             border: none;
-            border-radius: 8px;
-            background: #475569;
-            color: white;
+            border-radius: 10px;
+            background: #334155;
+            color: #94a3b8;
             cursor: pointer;
+            align-self: center;
         }
         .small-btn.danger {
-            background: #b91c1c;
+            background: transparent;
+            color: #ef4444;
+            border: 1px solid #7f1d1d;
         }
     </style>
 </head>
@@ -133,40 +124,34 @@
 
     <header>
         <h1>Run & Bike Tracker</h1>
-        <div id="gps-status">Recherche GPS...</div>
+        <div class="gps-badge" id="gps-status" onclick="forceGPS()">
+            <span id="gps-text">Recherche GPS...</span>
+            <span class="gps-refresh-icon">🔄</span>
+        </div>
     </header>
-
-    <div class="mode-display" id="current-mode-label">Mode actuel : En attente</div>
 
     <div class="dashboard">
         <div class="card full">
             <div class="card-title">Chronomètre Total</div>
-            <div class="card-value" id="total-chrono">00:00:00</div>
+            <div class="card-value" id="total-chrono" style="color:#38bdf8;">00:00:00</div>
         </div>
         <div class="card">
             <div class="card-title">Distance Totale</div>
-            <div class="card-value"><span id="total-distance">0.00</span> <span style="font-size:1rem;">km</span></div>
+            <div class="card-value"><span id="total-distance">0.00</span> <span style="font-size:1rem; font-weight:normal;">km</span></div>
         </div>
         <div class="card">
             <div class="card-title">Vitesse Instantanée</div>
-            <div class="card-value"><span id="current-speed">0.0</span> <span style="font-size:1rem;">km/h</span></div>
+            <div class="card-value"><span id="current-speed">0.0</span> <span style="font-size:1rem; font-weight:normal;">km/h</span></div>
         </div>
-        <div class="card">
-            <div class="card-title">Temps Vélo</div>
-            <div class="card-value" id="bike-chrono" style="font-size:1.4rem; color:#38bdf8;">00:00:00</div>
-        </div>
-        <div class="card">
-            <div class="card-title">Temps Course</div>
-            <div class="card-value" id="run-chrono" style="font-size:1.4rem; color:#34d399;">00:00:00</div>
+        <div class="card full">
+            <div class="card-title" id="relais-title">Relais en cours</div>
+            <div class="card-value" id="relais-chrono" style="color:#34d399;">00:00:00</div>
         </div>
     </div>
 
     <div class="btn-container">
-        <button class="big-btn" id="btn-toggle" onclick="toggleMode()">DÉMARRER / CHANGEMENT</button>
-        <div class="secondary-actions">
-            <button class="small-btn" onclick="forceGPS()">🔄 Relancer GPS</button>
-            <button class="small-btn danger" onclick="resetAll()">Réinitialiser</button>
-        </div>
+        <button class="big-btn" id="btn-toggle" onclick="handleMainAction()">DÉMARRER LA COURSE</button>
+        <button class="small-btn danger" onclick="resetAll()">Réinitialiser</button>
     </div>
 
     <script>
@@ -176,19 +161,18 @@
         let startTime = null;
         let totalTimerInterval = null;
 
-        let currentMode = 'NONE'; // 'BIKE' ou 'RUN'
-        let modeStartTime = null;
-        let bikeTimeSeconds = 0;
-        let runTimeSeconds = 0;
-        let modeTimerInterval = null;
+        let isRunning = false;
+        let relaisCount = 0;
+        let relaisStartTime = null;
+        let relaisTimerInterval = null;
 
         const gpsStatusEl = document.getElementById('gps-status');
-        const modeLabelEl = document.getElementById('current-mode-label');
+        const gpsTextEl = document.getElementById('gps-text');
         const totalChronoEl = document.getElementById('total-chrono');
         const totalDistanceEl = document.getElementById('total-distance');
         const currentSpeedEl = document.getElementById('current-speed');
-        const bikeChronoEl = document.getElementById('bike-chrono');
-        const runChronoEl = document.getElementById('run-chrono');
+        const relaisTitleEl = document.getElementById('relais-title');
+        const relaisChronoEl = document.getElementById('relais-chrono');
         const toggleBtn = document.getElementById('btn-toggle');
 
         function formatTime(totalSeconds) {
@@ -199,7 +183,7 @@
         }
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371e3; // Rayon de la terre en mètres
+            const R = 6371e3;
             const φ1 = lat1 * Math.PI/180;
             const φ2 = lat2 * Math.PI/180;
             const Δφ = (lat2-lat1) * Math.PI/180;
@@ -210,12 +194,12 @@
                       Math.sin(Δλ/2) * Math.sin(Δλ/2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
-            return R * c; // en mètres
+            return R * c;
         }
 
         function forceGPS() {
-            gpsStatusEl.textContent = "Recherche GPS forcée...";
-            gpsStatusEl.className = "";
+            gpsTextEl.textContent = "Recherche GPS...";
+            gpsStatusEl.className = "gps-badge";
             if (watchId !== null) {
                 navigator.geolocation.clearWatch(watchId);
             }
@@ -224,8 +208,8 @@
 
         function startGPS() {
             if (!navigator.geolocation) {
-                gpsStatusEl.textContent = "GPS non supporté";
-                gpsStatusEl.className = "error";
+                gpsTextEl.textContent = "GPS indisponible";
+                gpsStatusEl.className = "gps-badge error";
                 return;
             }
 
@@ -237,8 +221,8 @@
 
             watchId = navigator.geolocation.watchPosition(
                 (position) => {
-                    gpsStatusEl.textContent = "GPS Connecté (±" + Math.round(position.coords.accuracy) + "m)";
-                    gpsStatusEl.className = "active";
+                    gpsTextEl.textContent = "GPS ±" + Math.round(position.coords.accuracy) + "m";
+                    gpsStatusEl.className = "gps-badge active";
 
                     const { latitude, longitude, speed } = position.coords;
                     
@@ -248,9 +232,8 @@
 
                     const currentPos = { lat: latitude, lon: longitude };
 
-                    if (lastPosition !== null) {
+                    if (lastPosition !== null && isRunning) {
                         const distanceMeters = calculateDistance(lastPosition.lat, lastPosition.lon, currentPos.lat, currentPos.lon);
-                        // Filtre anti-bruit de saut GPS (< 50m par mise à jour)
                         if (distanceMeters < 50 && distanceMeters > 0.5) {
                             totalDistance += distanceMeters;
                             totalDistanceEl.textContent = (totalDistance / 1000).toFixed(2);
@@ -259,80 +242,74 @@
                     lastPosition = currentPos;
                 },
                 (error) => {
-                    console.warn(`Erreur GPS (${error.code}): ${error.message}`);
-                    gpsStatusEl.textContent = "Erreur GPS : " + error.message;
-                    gpsStatusEl.className = "error";
+                    gpsTextEl.textContent = "Erreur GPS";
+                    gpsStatusEl.className = "gps-badge error";
                 },
                 options
             );
         }
 
-        function toggleMode() {
+        function handleMainAction() {
             const now = Date.now();
-            
-            if (currentMode === 'NONE') {
-                // Premier démarrage
+
+            if (!isRunning) {
+                // Lancement de la course
+                isRunning = true;
                 startTime = now;
+                relaisCount = 1;
+                relaisStartTime = now;
+
+                if (watchId === null) startGPS();
+
                 totalTimerInterval = setInterval(() => {
                     const elapsed = Math.floor((Date.now() - startTime) / 1000);
                     totalChronoEl.textContent = formatTime(elapsed);
                 }, 1000);
-                
-                startGPS();
-                currentMode = 'BIKE'; // On commence par défaut en vélo (ou ajustez selon besoin)
-                toggleBtn.textContent = "PASSAGE À LA COURSE À PIED";
-            } else if (currentMode === 'BIKE') {
-                currentMode = 'RUN';
-                toggleBtn.textContent = "PASSAGE AU VÉLO";
+
+                startRelaisTimer();
+
+                toggleBtn.textContent = "RELAIS SUIVANT";
+                relaisTitleEl.textContent = `Relais n°${relaisCount}`;
             } else {
-                currentMode = 'BIKE';
-                toggleBtn.textContent = "PASSAGE À LA COURSE À PIED";
+                // Passage de relais
+                relaisCount++;
+                relaisStartTime = now;
+                relaisTitleEl.textContent = `Relais n°${relaisCount}`;
+                startRelaisTimer();
             }
+        }
 
-            modeStartTime = now;
-            updateModeDisplay();
-
-            if (modeTimerInterval) clearInterval(modeTimerInterval);
-            modeTimerInterval = setInterval(() => {
-                const modeElapsed = Math.floor((Date.now() - modeStartTime) / 1000);
-                if (currentMode === 'BIKE') {
-                    bikeChronoEl.textContent = formatTime(bikeTimeSeconds + modeElapsed);
-                } else if (currentMode === 'RUN') {
-                    runChronoEl.textContent = formatTime(runTimeSeconds + modeElapsed);
-                }
+        function startRelaisTimer() {
+            if (relaisTimerInterval) clearInterval(relaisTimerInterval);
+            relaisChronoEl.textContent = "00:00:00";
+            
+            relaisTimerInterval = setInterval(() => {
+                const relaisElapsed = Math.floor((Date.now() - relaisStartTime) / 1000);
+                relaisChronoEl.textContent = formatTime(relaisElapsed);
             }, 1000);
         }
 
-        function updateModeDisplay() {
-            modeLabelEl.className = "mode-display " + (currentMode === 'BIKE' ? 'bike' : (currentMode === 'RUN' ? 'run' : ''));
-            if (currentMode === 'BIKE') {
-                modeLabelEl.textContent = "MODE ACTUEL : 🚴‍♂️ EN VÉLO";
-            } else if (currentMode === 'RUN') {
-                modeLabelEl.textContent = "MODE ACTUEL : 🏃‍♂️ EN COURSE";
-            }
-        }
-
         function resetAll() {
-            if (confirm("Voulez-vous tout réinitialiser ?")) {
+            if (confirm("Réinitialiser le chrono et la distance ?")) {
                 if (watchId !== null) navigator.geolocation.clearWatch(watchId);
                 clearInterval(totalTimerInterval);
-                clearInterval(modeTimerInterval);
+                clearInterval(relaisTimerInterval);
 
-                currentMode = 'NONE';
+                isRunning = false;
+                watchId = null;
+                relaisCount = 0;
                 totalDistance = 0;
-                bikeTimeSeconds = 0;
-                runTimeSeconds = 0;
+                lastPosition = null;
 
                 totalChronoEl.textContent = "00:00:00";
                 totalDistanceEl.textContent = "0.00";
                 currentSpeedEl.textContent = "0.0";
-                bikeChronoEl.textContent = "00:00:00";
-                runChronoEl.textContent = "00:00:00";
-                gpsStatusEl.textContent = "Recherche GPS...";
-                gpsStatusEl.className = "";
-                modeLabelEl.className = "mode-display";
-                modeLabelEl.textContent = "Mode actuel : En attente";
-                toggleBtn.textContent = "DÉMARRER / CHANGEMENT";
+                relaisChronoEl.textContent = "00:00:00";
+                relaisTitleEl.textContent = "Relais en cours";
+                
+                gpsTextEl.textContent = "Recherche GPS...";
+                gpsStatusEl.className = "gps-badge";
+                toggleBtn.textContent = "DÉMARRER LA COURSE";
             }
         }
     </script>
