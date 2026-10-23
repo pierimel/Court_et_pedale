@@ -1,412 +1,340 @@
 <!DOCTYPE html>
-<html lang="fr" class="h-full bg-slate-900 text-slate-100">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>relais course vélo à 2 personnes</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Inter Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <title>Run & Bike Tracker</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
         body {
-            font-family: 'Inter', sans-serif;
-            touch-action: manipulation;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            justify-content: space-between;
+            padding: 20px;
         }
-        .pulse-animation {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        header {
+            text-align: center;
         }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.92; transform: scale(0.98); }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            color: #38bdf8;
         }
-        /* Style spécial pour désactiver la sélection de texte lors du tap rapide */
-        .no-select {
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
+        #gps-status {
+            font-size: 0.85rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            display: inline-block;
+            background: #334155;
+            color: #fbbf24;
+        }
+        #gps-status.active {
+            background: #065f46;
+            color: #34d399;
+        }
+        #gps-status.error {
+            background: #7f1d1d;
+            color: #f87171;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 10px 0;
+        }
+        .card {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .card-title {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .card-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        .card.full {
+            grid-column: span 2;
+        }
+        .mode-display {
+            background: #334155;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .mode-display.bike {
+            background: #0369a1;
+            color: #e0f2fe;
+        }
+        .mode-display.run {
+            background: #047857;
+            color: #ecfdf5;
+        }
+        .btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .big-btn {
+            width: 100%;
+            padding: 25px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s, background-color 0.2s;
+        }
+        .big-btn:active {
+            transform: scale(0.97);
+        }
+        #btn-toggle {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+        }
+        .secondary-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .small-btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 0.9rem;
+            border: none;
+            border-radius: 8px;
+            background: #475569;
+            color: white;
+            cursor: pointer;
+        }
+        .small-btn.danger {
+            background: #b91c1c;
         }
     </style>
 </head>
-<body class="h-full flex flex-col justify-between p-4 max-w-lg mx-auto no-select">
+<body>
 
-    <!-- En-tête / Status -->
-    <header class="flex items-center justify-between bg-slate-800/80 backdrop-blur rounded-2xl p-4 border border-slate-700 shadow-lg">
-        <div class="flex items-center gap-3">
-            <div id="gps-status-dot" class="w-3.5 h-3.5 rounded-full bg-amber-500 animate-ping"></div>
-            <div>
-                <h1 class="font-black text-lg tracking-wide uppercase text-slate-100">Cours & pédale !</h1>
-                <p id="gps-status-text" class="text-xs text-slate-400 font-medium">Recherche GPS...</p>
-            </div>
-        </div>
-        <div class="text-right">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total</span>
-            <div id="total-chrono" class="text-2xl font-black font-mono tracking-tight text-white">00:00:00</div>
-        </div>
+    <header>
+        <h1>Run & Bike Tracker</h1>
+        <div id="gps-status">Recherche GPS...</div>
     </header>
 
-    <!-- Affichage principal des relais & vitesse instantanée -->
-    <main class="my-4 flex-1 flex flex-col justify-between gap-4">
-        
-        <!-- Cartes Vitesse & Distance Instantanées -->
-        <div class="grid grid-cols-2 gap-3">
-            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-3 text-center shadow-md">
-                <span class="text-xs font-semibold uppercase text-slate-400 block mb-1">Vitesse Actuelle</span>
-                <div class="flex items-baseline justify-center gap-1">
-                    <span id="current-speed" class="text-3xl font-black text-amber-400 font-mono">0.0</span>
-                    <span class="text-xs font-bold text-slate-400">km/h</span>
-                </div>
-            </div>
-            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-3 text-center shadow-md">
-                <span class="text-xs font-semibold uppercase text-slate-400 block mb-1">Relais En Cours</span>
-                <div class="flex items-baseline justify-center gap-1">
-                    <span id="relay-chrono" class="text-3xl font-black text-white font-mono">00:00</span>
-                </div>
-            </div>
+    <div class="mode-display" id="current-mode-label">Mode actuel : En attente</div>
+
+    <div class="dashboard">
+        <div class="card full">
+            <div class="card-title">Chronomètre Total</div>
+            <div class="card-value" id="total-chrono">00:00:00</div>
         </div>
-
-        <!-- GRAND BOUTON CENTRAL DYNAMIQUE -->
-        <div class="flex-1 flex flex-col justify-center items-center my-2">
-            <button id="main-toggle-btn" disabled 
-                class="w-full h-48 sm:h-56 rounded-3xl bg-slate-800 border-4 border-slate-700 flex flex-col justify-center items-center shadow-2xl transition-all duration-200 active:scale-95 disabled:opacity-50">
-                <i id="mode-icon" class="fa-solid fa-play text-5xl mb-3 text-slate-400"></i>
-                <span id="mode-title" class="text-2xl font-black uppercase tracking-wider text-slate-300">DÉMARRER</span>
-                <span id="mode-subtitle" class="text-xs font-bold uppercase tracking-widest text-slate-500 mt-1">Appuyez pour lancer la course</span>
-            </button>
+        <div class="card">
+            <div class="card-title">Distance Totale</div>
+            <div class="card-value"><span id="total-distance">0.00</span> <span style="font-size:1rem;">km</span></div>
         </div>
-
-        <!-- Statistiques Cumulées (Vélo vs Course) -->
-        <div class="grid grid-cols-2 gap-3">
-            <!-- Stats Vélo -->
-            <div class="bg-emerald-950/40 border border-emerald-800/50 rounded-2xl p-3">
-                <div class="flex items-center gap-2 mb-2 text-emerald-400 font-bold text-sm border-b border-emerald-800/40 pb-1">
-                    <i class="fa-solid fa-person-biking"></i>
-                    <span>VÉLO</span>
-                </div>
-                <div class="space-y-1 text-xs">
-                    <div class="flex justify-between"><span class="text-slate-400">Dist:</span> <span id="bike-dist" class="font-mono font-bold text-slate-200">0.00 km</span></div>
-                    <div class="flex justify-between"><span class="text-slate-400">Temps:</span> <span id="bike-time" class="font-mono font-bold text-slate-200">00:00:00</span></div>
-                    <div class="flex justify-between"><span class="text-slate-400">Moy:</span> <span id="bike-avg" class="font-mono font-bold text-emerald-400">0.0 km/h</span></div>
-                </div>
-            </div>
-
-            <!-- Stats Course à Pied -->
-            <div class="bg-sky-950/40 border border-sky-800/50 rounded-2xl p-3">
-                <div class="flex items-center gap-2 mb-2 text-sky-400 font-bold text-sm border-b border-sky-800/40 pb-1">
-                    <i class="fa-solid fa-person-running"></i>
-                    <span>COURSE</span>
-                </div>
-                <div class="space-y-1 text-xs">
-                    <div class="flex justify-between"><span class="text-slate-400">Dist:</span> <span id="run-dist" class="font-mono font-bold text-slate-200">0.00 km</span></div>
-                    <div class="flex justify-between"><span class="text-slate-400">Temps:</span> <span id="run-time" class="font-mono font-bold text-slate-200">00:00:00</span></div>
-                    <div class="flex justify-between"><span class="text-slate-400">Moy:</span> <span id="run-avg" class="font-mono font-bold text-sky-400">0.0 km/h</span></div>
-                </div>
-            </div>
+        <div class="card">
+            <div class="card-title">Vitesse Instantanée</div>
+            <div class="card-value"><span id="current-speed">0.0</span> <span style="font-size:1rem;">km/h</span></div>
         </div>
-
-        <!-- Total général -->
-        <div class="bg-slate-800/60 rounded-xl p-2 px-4 flex justify-between items-center text-xs text-slate-300 font-semibold border border-slate-700/50">
-            <span>Distance Totale Cumulée :</span>
-            <span id="total-dist" class="font-mono text-sm font-black text-amber-400">0.00 km</span>
+        <div class="card">
+            <div class="card-title">Temps Vélo</div>
+            <div class="card-value" id="bike-chrono" style="font-size:1.4rem; color:#38bdf8;">00:00:00</div>
         </div>
-
-    </main>
-
-    <!-- Contrôles Secondaires & Historique -->
-    <footer class="space-y-3">
-        <!-- Boutons de contrôle de la course -->
-        <div class="grid grid-cols-2 gap-3">
-            <button id="pause-btn" disabled onclick="togglePause()" class="py-3 bg-amber-600 active:bg-amber-700 disabled:opacity-40 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow text-sm">
-                <i id="pause-icon" class="fa-solid fa-pause"></i>
-                <span id="pause-text">Pause</span>
-            </button>
-            <button id="reset-btn" onclick="resetRace()" class="py-3 bg-slate-700 active:bg-slate-800 text-slate-300 font-bold rounded-xl flex items-center justify-center gap-2 shadow text-sm">
-                <i class="fa-solid fa-rotate-right"></i>
-                <span>Réinitialiser</span>
-            </button>
+        <div class="card">
+            <div class="card-title">Temps Course</div>
+            <div class="card-value" id="run-chrono" style="font-size:1.4rem; color:#34d399;">00:00:00</div>
         </div>
+    </div>
 
-        <!-- Section Historique / Tableau des Relais -->
-        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-3">
-            <div class="flex justify-between items-center mb-2">
-                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Historique des Relais</h2>
-                <button onclick="exportData()" class="text-xs bg-slate-700 hover:bg-slate-600 text-amber-400 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1 transition">
-                    <i class="fa-solid fa-download"></i> CSV
-                </button>
-            </div>
-            
-            <div class="max-h-32 overflow-y-auto pr-1">
-                <table class="w-full text-left text-xs">
-                    <thead class="text-slate-500 uppercase border-b border-slate-700 text-[10px]">
-                        <tr>
-                            <th class="pb-1">#</th>
-                            <th class="pb-1">Mode</th>
-                            <th class="pb-1">Temps</th>
-                            <th class="pb-1">Dist.</th>
-                            <th class="pb-1 text-right">Vitesse</th>
-                        </tr>
-                    </thead>
-                    <tbody id="laps-tbody" class="divide-y divide-slate-700/50 font-mono text-slate-300">
-                        <tr>
-                            <td colspan="5" class="text-center py-3 text-slate-500 italic font-sans">Aucun relais enregistré</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+    <div class="btn-container">
+        <button class="big-btn" id="btn-toggle" onclick="toggleMode()">DÉMARRER / CHANGEMENT</button>
+        <div class="secondary-actions">
+            <button class="small-btn" onclick="forceGPS()">🔄 Relancer GPS</button>
+            <button class="small-btn danger" onclick="resetAll()">Réinitialiser</button>
         </div>
-    </footer>
+    </div>
 
-    <!-- Logique JavaScript de l'Application -->
     <script>
-        // --- ÉTATS GLOBAL DE L'APPLICATION ---
-        let raceState = 'STOPPED'; // 'STOPPED', 'RUNNING', 'PAUSED'
-        let currentMode = 'BIKE'; // 'BIKE' ou 'RUN'
-        
-        // Chronomètres
-        let startTime = 0;
-        let elapsedTimeBeforePause = 0;
-        let globalTimerInterval = null;
-        let relayStartTime = 0;
-        let relayElapsedTimeBeforePause = 0;
-        
-        // Relais
-        let currentRelayIndex = 1;
-        let relayDistance = 0; // en mètres
-        let laps = [];
-
-        // Distances & GPS
-        let totalBikeDistance = 0; // mètres
-        let totalRunDistance = 0;  // mètres
-        let totalBikeTime = 0;     // secondes
-        let totalRunTime = 0;      // secondes
-        
+        let watchId = null;
         let lastPosition = null;
-        let watchPositionId = null;
+        let totalDistance = 0;
+        let startTime = null;
+        let totalTimerInterval = null;
 
-        // --- ÉLÉMENTS DOM ---
-        const mainBtn = document.getElementById('main-toggle-btn');
-        const modeIcon = document.getElementById('mode-icon');
-        const modeTitle = document.getElementById('mode-title');
-        const modeSubtitle = document.getElementById('mode-subtitle');
+        let currentMode = 'NONE'; // 'BIKE' ou 'RUN'
+        let modeStartTime = null;
+        let bikeTimeSeconds = 0;
+        let runTimeSeconds = 0;
+        let modeTimerInterval = null;
+
+        const gpsStatusEl = document.getElementById('gps-status');
+        const modeLabelEl = document.getElementById('current-mode-label');
         const totalChronoEl = document.getElementById('total-chrono');
-        const relayChronoEl = document.getElementById('relay-chrono');
+        const totalDistanceEl = document.getElementById('total-distance');
         const currentSpeedEl = document.getElementById('current-speed');
-        const gpsStatusDot = document.getElementById('gps-status-dot');
-        const gpsStatusText = document.getElementById('gps-status-text');
-        
-        const bikeDistEl = document.getElementById('bike-dist');
-        const bikeTimeEl = document.getElementById('bike-time');
-        const bikeAvgEl = document.getElementById('bike-avg');
-        
-        const runDistEl = document.getElementById('run-dist');
-        const runTimeEl = document.getElementById('run-time');
-        const runAvgEl = document.getElementById('run-avg');
-        
-        const totalDistEl = document.getElementById('total-dist');
-        const lapsTbody = document.getElementById('laps-tbody');
-        const pauseBtn = document.getElementById('pause-btn');
+        const bikeChronoEl = document.getElementById('bike-chrono');
+        const runChronoEl = document.getElementById('run-chrono');
+        const toggleBtn = document.getElementById('btn-toggle');
 
-        // --- INITIALISATION AU CHARGEMENT ---
-        window.onload = () => {
-            initGPS();
-            mainBtn.addEventListener('click', handleMainButtonClick);
-        };
+        function formatTime(totalSeconds) {
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
 
-        // --- GESTION DU GPS ---
-        function initGPS() {
-            if ('geolocation' in navigator) {
-                watchPositionId = navigator.geolocation.watchPosition(
-                    handleGPSUpdate,
-                    handleGPSError,
-                    {
-                        enableHighAccuracy: true,
-                        maximumAge: 1000,
-                        timeout: 10000
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // Rayon de la terre en mètres
+            const φ1 = lat1 * Math.PI/180;
+            const φ2 = lat2 * Math.PI/180;
+            const Δφ = (lat2-lat1) * Math.PI/180;
+            const Δλ = (lon2-lon1) * Math.PI/180;
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c; // en mètres
+        }
+
+        function forceGPS() {
+            gpsStatusEl.textContent = "Recherche GPS forcée...";
+            gpsStatusEl.className = "";
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+            startGPS();
+        }
+
+        function startGPS() {
+            if (!navigator.geolocation) {
+                gpsStatusEl.textContent = "GPS non supporté";
+                gpsStatusEl.className = "error";
+                return;
+            }
+
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 30000,
+                maximumAge: 0
+            };
+
+            watchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    gpsStatusEl.textContent = "GPS Connecté (±" + Math.round(position.coords.accuracy) + "m)";
+                    gpsStatusEl.className = "active";
+
+                    const { latitude, longitude, speed } = position.coords;
+                    
+                    if (speed !== null && speed >= 0) {
+                        currentSpeedEl.textContent = (speed * 3.6).toFixed(1);
                     }
-                );
-            } else {
-                setGPSStatus('error', 'GPS non supporté');
-            }
-        }
 
-        function handleGPSUpdate(position) {
-            setGPSStatus('active', 'GPS Connecté');
-            
-            const speedKmh = position.coords.speed ? (position.coords.speed * 3.6) : 0;
-            currentSpeedEl.textContent = speedKmh.toFixed(1);
+                    const currentPos = { lat: latitude, lon: longitude };
 
-            if (raceState === 'RUNNING' && lastPosition) {
-                const distMeters = calculateHaversineDistance(
-                    lastPosition.coords.latitude,
-                    lastPosition.coords.longitude,
-                    position.coords.latitude,
-                    position.coords.longitude
-                );
-
-                // Filtrer le bruit GPS (ex: sauts parasites < 1m ou très aberrants)
-                if (distMeters > 1.5 && distMeters < 100) {
-                    relayDistance += distMeters;
-                    if (currentMode === 'BIKE') {
-                        totalBikeDistance += distMeters;
-                    } else {
-                        totalRunDistance += distMeters;
+                    if (lastPosition !== null) {
+                        const distanceMeters = calculateDistance(lastPosition.lat, lastPosition.lon, currentPos.lat, currentPos.lon);
+                        // Filtre anti-bruit de saut GPS (< 50m par mise à jour)
+                        if (distanceMeters < 50 && distanceMeters > 0.5) {
+                            totalDistance += distanceMeters;
+                            totalDistanceEl.textContent = (totalDistance / 1000).toFixed(2);
+                        }
                     }
-                    updateStatsUI();
-                }
-            }
-            
-            lastPosition = position;
+                    lastPosition = currentPos;
+                },
+                (error) => {
+                    console.warn(`Erreur GPS (${error.code}): ${error.message}`);
+                    gpsStatusEl.textContent = "Erreur GPS : " + error.message;
+                    gpsStatusEl.className = "error";
+                },
+                options
+            );
         }
 
-        function handleGPSError(error) {
-            console.warn('Erreur GPS:', error);
-            setGPSStatus('error', 'Signal GPS faible...');
-            currentSpeedEl.textContent = '0.0';
-        }
-
-        function setGPSStatus(type, text) {
-            gpsStatusText.textContent = text;
-            if (type === 'active') {
-                gpsStatusDot.className = 'w-3.5 h-3.5 rounded-full bg-emerald-500';
-            } else if (type === 'error') {
-                gpsStatusDot.className = 'w-3.5 h-3.5 rounded-full bg-rose-500 animate-pulse';
-            } else {
-                gpsStatusDot.className = 'w-3.5 h-3.5 rounded-full bg-amber-500 animate-ping';
-            }
-        }
-
-        // --- FORMULE HAVERSINE (Distance entre 2 coordonnées en mètres) ---
-        function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371000; // Rayon de la Terre en mètres
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = 
-                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-                Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c;
-        }
-
-        // --- CLIC SUR LE GRAND BOUTON CENTRAL ---
-        function handleMainButtonClick() {
-            if (raceState === 'STOPPED') {
-                startRace();
-            } else if (raceState === 'RUNNING') {
-                switchRelay();
-            }
-        }
-
-        // --- DÉMARRAGE DE LA COURSE ---
-        function startRace() {
-            raceState = 'RUNNING';
-            startTime = Date.now();
-            relayStartTime = Date.now();
-            
-            // Mode initial : VÉLO
-            currentMode = 'BIKE';
-            
-            globalTimerInterval = setInterval(updateTimers, 1000);
-            
-            pauseBtn.disabled = false;
-            mainBtn.disabled = false;
-            
-            updateButtonUI();
-            updateStatsUI();
-        }
-
-        // --- BASCULEMENT DE RELAIS (BIKE <-> RUN) ---
-        function switchRelay() {
+        function toggleMode() {
             const now = Date.now();
-            const relayDurationSec = Math.floor((now - relayStartTime) / 1000);
-
-            // Enregistrer le relais qui s'achève
-            laps.push({
-                index: currentRelayIndex,
-                mode: currentMode,
-                duration: relayDurationSec,
-                distance: relayDistance,
-                speed: relayDurationSec > 0 ? (relayDistance / 1000) / (relayDurationSec / 3600) : 0
-            });
-
-            // Cumuler les temps par discipline
-            if (currentMode === 'BIKE') {
-                totalBikeTime += relayDurationSec;
-                currentMode = 'RUN';
-            } else {
-                totalRunTime += relayDurationSec;
-                currentMode = 'BIKE';
-            }
-
-            // Réinitialiser pour le nouveau relais
-            currentRelayIndex++;
-            relayStartTime = now;
-            relayDistance = 0;
-
-            renderLapsTable();
-            updateButtonUI();
-            updateStatsUI();
-        }
-
-        // --- MISE À JOUR DE L'INTERFACE DU BOUTON CENTRAL ---
-        function updateButtonUI() {
-            if (raceState === 'STOPPED') {
-                mainBtn.className = "w-full h-48 sm:h-56 rounded-3xl bg-slate-800 border-4 border-slate-700 flex flex-col justify-center items-center shadow-2xl transition-all duration-200 active:scale-95 pulse-animation";
-                modeIcon.className = "fa-solid fa-play text-5xl mb-3 text-emerald-400";
-                modeTitle.textContent = "DÉMARRER LA COURSE";
-                modeTitle.className = "text-2xl font-black uppercase tracking-wider text-emerald-400";
-                modeSubtitle.textContent = "Appuyez pour commencer le 1er relais";
-                mainBtn.disabled = false;
+            
+            if (currentMode === 'NONE') {
+                // Premier démarrage
+                startTime = now;
+                totalTimerInterval = setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                    totalChronoEl.textContent = formatTime(elapsed);
+                }, 1000);
+                
+                startGPS();
+                currentMode = 'BIKE'; // On commence par défaut en vélo (ou ajustez selon besoin)
+                toggleBtn.textContent = "PASSAGE À LA COURSE À PIED";
             } else if (currentMode === 'BIKE') {
-                mainBtn.className = "w-full h-48 sm:h-56 rounded-3xl bg-emerald-600 hover:bg-emerald-500 border-4 border-emerald-400 flex flex-col justify-center items-center shadow-2xl transition-all duration-200 active:scale-95 shadow-emerald-900/50";
-                modeIcon.className = "fa-solid fa-person-biking text-6xl mb-3 text-white";
-                modeTitle.textContent = "VOUS ÊTES À VÉLO";
-                modeTitle.className = "text-2xl sm:text-3xl font-black uppercase tracking-wider text-white";
-                modeSubtitle.textContent = "Cliquez pour passer À PIED";
+                currentMode = 'RUN';
+                toggleBtn.textContent = "PASSAGE AU VÉLO";
             } else {
-                mainBtn.className = "w-full h-48 sm:h-56 rounded-3xl bg-sky-600 hover:bg-sky-500 border-4 border-sky-400 flex flex-col justify-center items-center shadow-2xl transition-all duration-200 active:scale-95 shadow-sky-900/50";
-                modeIcon.className = "fa-solid fa-person-running text-6xl mb-3 text-white";
-                modeTitle.textContent = "VOUS ÊTES À PIED";
-                modeTitle.className = "text-2xl sm:text-3xl font-black uppercase tracking-wider text-white";
-                modeSubtitle.textContent = "Cliquez pour passer À VÉLO";
+                currentMode = 'BIKE';
+                toggleBtn.textContent = "PASSAGE À LA COURSE À PIED";
+            }
+
+            modeStartTime = now;
+            updateModeDisplay();
+
+            if (modeTimerInterval) clearInterval(modeTimerInterval);
+            modeTimerInterval = setInterval(() => {
+                const modeElapsed = Math.floor((Date.now() - modeStartTime) / 1000);
+                if (currentMode === 'BIKE') {
+                    bikeChronoEl.textContent = formatTime(bikeTimeSeconds + modeElapsed);
+                } else if (currentMode === 'RUN') {
+                    runChronoEl.textContent = formatTime(runTimeSeconds + modeElapsed);
+                }
+            }, 1000);
+        }
+
+        function updateModeDisplay() {
+            modeLabelEl.className = "mode-display " + (currentMode === 'BIKE' ? 'bike' : (currentMode === 'RUN' ? 'run' : ''));
+            if (currentMode === 'BIKE') {
+                modeLabelEl.textContent = "MODE ACTUEL : 🚴‍♂️ EN VÉLO";
+            } else if (currentMode === 'RUN') {
+                modeLabelEl.textContent = "MODE ACTUEL : 🏃‍♂️ EN COURSE";
             }
         }
 
-        // --- CHRONOMÈTRES EN TEMPS RÉEL ---
-        function updateTimers() {
-            if (raceState !== 'RUNNING') return;
+        function resetAll() {
+            if (confirm("Voulez-vous tout réinitialiser ?")) {
+                if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+                clearInterval(totalTimerInterval);
+                clearInterval(modeTimerInterval);
 
-            const now = Date.now();
-            
-            // Chrono Global
-            const totalSec = Math.floor((now - startTime) / 1000);
-            totalChronoEl.textContent = formatHHMMSS(totalSec);
+                currentMode = 'NONE';
+                totalDistance = 0;
+                bikeTimeSeconds = 0;
+                runTimeSeconds = 0;
 
-            // Chrono Relais
-            const relaySec = Math.floor((now - relayStartTime) / 1000);
-            relayChronoEl.textContent = formatMMSS(relaySec);
+                totalChronoEl.textContent = "00:00:00";
+                totalDistanceEl.textContent = "0.00";
+                currentSpeedEl.textContent = "0.0";
+                bikeChronoEl.textContent = "00:00:00";
+                runChronoEl.textContent = "00:00:00";
+                gpsStatusEl.textContent = "Recherche GPS...";
+                gpsStatusEl.className = "";
+                modeLabelEl.className = "mode-display";
+                modeLabelEl.textContent = "Mode actuel : En attente";
+                toggleBtn.textContent = "DÉMARRER / CHANGEMENT";
+            }
         }
-
-        // --- PAUSE / REPRONSE ---
-        function togglePause() {
-            const pauseIcon = document.getElementById('pause-icon');
-            const pauseText = document.getElementById('pause-text');
-
-            if (raceState === 'RUNNING') {
-                raceState = 'PAUSED';
-                clearInterval(globalTimerInterval);
-                
-                // Sauvegarder les durées d'étape
-                elapsedTimeBeforePause += Date.now() - startTime;
-                relayElapsedTimeBeforePause += Date.now() - relayStartTime;
-                
-                pauseBtn.className = "py-3 bg-emerald-600 active:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow text-sm";
-                pauseIcon.className = "fa-solid fa-play";
-                pauseText.textContent = "Reprendre";
-                mainBtn.disabled = true;
-            } else if (raceState === 'PAUSED') {
-                raceState = 'RUNNING';
-                startTime = Date.now() - elapsedTimeBeforePause;
-           
+    </script>
+</body>
+</html>
