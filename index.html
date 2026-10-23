@@ -18,24 +18,24 @@
             flex-direction: column;
             height: 100vh;
             justify-content: space-between;
-            padding: 12px;
-            overflow: hidden; /* Empêche tout défilement vertical */
+            padding: 10px;
+            overflow: hidden;
         }
         header {
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
         }
         h1 {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: #38bdf8;
         }
         .gps-badge {
-            font-size: 0.75rem;
-            padding: 3px 10px;
-            border-radius: 12px;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
             background: #334155;
             color: #fbbf24;
         }
@@ -47,106 +47,113 @@
             background: #7f1d1d;
             color: #f87171;
         }
-        /* Gros bouton visible uniquement si le GPS est en panne */
         #gps-retry-container {
             display: none;
             width: 100%;
+            margin-top: 4px;
         }
         .retry-btn {
             width: 100%;
-            padding: 10px;
-            font-size: 0.9rem;
+            padding: 6px;
+            font-size: 0.8rem;
             font-weight: bold;
             background: #b91c1c;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
         }
         .dashboard {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
+            gap: 6px;
         }
         .card {
             background: #1e293b;
-            padding: 10px;
-            border-radius: 10px;
+            padding: 8px;
+            border-radius: 8px;
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
         .card-title {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             color: #94a3b8;
             text-transform: uppercase;
             margin-bottom: 2px;
         }
         .card-value {
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             font-weight: bold;
         }
         .card.full {
             grid-column: span 2;
         }
-        /* Zone d'historique compacte pour ne pas dépasser de l'écran */
-        .history-container {
+        /* Zone d'historique scrollable en bas */
+        .history-section {
             background: #1e293b;
-            border-radius: 10px;
-            padding: 8px;
-            max-height: 110px;
-            overflow-y: auto;
+            border-radius: 8px;
+            padding: 6px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0; /* Important pour que le flexbox gère bien le scroll */
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
         .history-title {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: #94a3b8;
             text-transform: uppercase;
             margin-bottom: 4px;
             text-align: center;
         }
         .history-list {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 4px;
+            overflow-y: auto; /* C'est ici qu'on scrolle si l'historique grandit */
+            flex-grow: 1;
+            padding-right: 2px;
         }
         .history-item {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             background: #334155;
-            padding: 4px 8px;
+            padding: 6px 8px;
             border-radius: 6px;
         }
         .btn-container {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
+            margin-top: 6px;
         }
         .big-btn {
             width: 100%;
-            padding: 18px;
-            font-size: 1.2rem;
+            padding: 14px;
+            font-size: 1.1rem;
             font-weight: bold;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
             color: white;
             background: linear-gradient(135deg, #0284c7, #0369a1);
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+            box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
         }
         .big-btn:active {
             transform: scale(0.98);
         }
         .footer-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
         .small-btn {
             flex: 1;
             padding: 8px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             background: #334155;
             color: #cbd5e1;
             cursor: pointer;
@@ -169,29 +176,29 @@
     </header>
 
     <div class="dashboard">
-        <div class="card full" style="padding: 8px;">
+        <div class="card full" style="padding: 6px;">
             <div class="card-title">Chronomètre Total</div>
-            <div class="card-value" id="total-chrono" style="color:#38bdf8; font-size: 1.6rem;">00:00:00</div>
+            <div class="card-value" id="total-chrono" style="color:#38bdf8; font-size: 1.4rem;">00:00:00</div>
         </div>
         <div class="card">
             <div class="card-title">Distance Totale</div>
-            <div class="card-value"><span id="total-distance">0.00</span> <span style="font-size:0.9rem; font-weight:normal;">km</span></div>
+            <div class="card-value"><span id="total-distance">0.00</span> <span style="font-size:0.8rem; font-weight:normal;">km</span></div>
         </div>
         <div class="card">
             <div class="card-title">Vitesse</div>
-            <div class="card-value"><span id="current-speed">0.0</span> <span style="font-size:0.9rem; font-weight:normal;">km/h</span></div>
+            <div class="card-value"><span id="current-speed">0.0</span> <span style="font-size:0.8rem; font-weight:normal;">km/h</span></div>
         </div>
-        <div class="card full" style="background: #172554; border-color: #1e3a8a;">
+        <div class="card full" style="background: #172554; border-color: #1e3a8a; padding: 6px;">
             <div class="card-title" id="relais-title" style="color: #93c5fd;">Relais actuel</div>
-            <div class="card-value" id="relais-chrono" style="color:#34d399;">00:00:00</div>
+            <div class="card-value" id="relais-chrono" style="color:#34d399; font-size: 1.3rem;">00:00:00</div>
         </div>
     </div>
 
-    <!-- Historique des relais -->
-    <div class="history-container">
-        <div class="history-title">Historique des relais</div>
+    <!-- Historique des relais scrollable -->
+    <div class="history-section">
+        <div class="history-title">Historique des relais (du plus récent au plus ancien)</div>
         <div class="history-list" id="history-list">
-            <div style="color: #64748b; text-align: center; font-size: 0.75rem;">Aucun relais enregistré</div>
+            <div style="color: #64748b; text-align: center; font-size: 0.75rem; margin-top: 10px;">Aucun relais enregistré</div>
         </div>
     </div>
 
@@ -213,6 +220,7 @@
         let isRunning = false;
         let relaisList = []; // Stocke les relais {number, duration, distance}
         let currentRelaisStartTime = null;
+        let currentRelaisStartDistance = 0;
         let relaisTimerInterval = null;
 
         const gpsStatusEl = document.getElementById('gps-status');
@@ -268,7 +276,7 @@
                 (position) => {
                     gpsStatusEl.textContent = "GPS Connecté (±" + Math.round(position.coords.accuracy) + "m)";
                     gpsStatusEl.className = "gps-badge active";
-                    gpsRetryContainer.style.display = "none"; // Cache le bouton si connecté
+                    gpsRetryContainer.style.display = "none";
 
                     const { latitude, longitude, speed } = position.coords;
                     if (speed !== null && speed >= 0) {
@@ -288,7 +296,7 @@
                 (error) => {
                     gpsStatusEl.textContent = "GPS déconnecté / Erreur";
                     gpsStatusEl.className = "gps-badge error";
-                    gpsRetryContainer.style.display = "block"; // Affiche le gros bouton de secours
+                    gpsRetryContainer.style.display = "block";
                 },
                 options
             );
@@ -301,6 +309,7 @@
                 isRunning = true;
                 startTime = now;
                 currentRelaisStartTime = now;
+                currentRelaisStartDistance = totalDistance;
 
                 if (watchId === null) startGPS();
 
@@ -313,18 +322,25 @@
                 toggleBtn.textContent = "PASSAGE DE RELAIS";
                 relaisTitleEl.textContent = "Relais n°1 en cours";
             } else {
-                // Enregistrement du relais en cours dans l'historique
+                // Enregistrement du relais terminé
                 const relaisDurationSec = Math.floor((now - currentRelaisStartTime) / 1000);
-                relaisList.push({
-                    number: relaisList.length + 1,
-                    duration: formatTime(relaisDurationSec)
+                const relaisDistanceKm = ((totalDistance - currentRelaisStartDistance) / 1000).toFixed(2);
+
+                const finishedRelaisNumber = relaisList.length + 1;
+                
+                // Ajout au début du tableau (unshift) pour que le plus récent soit tout en haut
+                relaisList.unshift({
+                    number: finishedRelaisNumber,
+                    duration: formatTime(relaisDurationSec),
+                    distance: relaisDistanceKm
                 });
 
                 updateHistoryDisplay();
 
                 // Nouveau relais
                 currentRelaisStartTime = now;
-                relaisTitleEl.textContent = `Relais n°${relaisList.length + 1} en cours`;
+                currentRelaisStartDistance = totalDistance;
+                relaisTitleEl.textContent = `Relais n°${finishedRelaisNumber + 1} en cours`;
                 startRelaisTimer();
             }
         }
@@ -344,10 +360,9 @@
             relaisList.forEach(r => {
                 const item = document.createElement('div');
                 item.className = "history-item";
-                item.innerHTML = `<span>Relais n°${r.number}</span> <strong>${r.duration}</strong>`;
+                item.innerHTML = `<span><strong>Relais n°${r.number}</strong></span> <span>⏱️ ${r.duration}</span> <span>📏 ${r.distance} km</span>`;
                 historyListEl.appendChild(item);
             });
-            historyListEl.scrollTop = historyListEl.scrollHeight;
         }
 
         function exportData() {
@@ -355,14 +370,18 @@
             text += `Chrono Total : ${totalChronoEl.textContent}\n`;
             text += `Distance Totale : ${totalDistanceEl.textContent} km\n\n`;
             text += `Détail des relais :\n`;
-            relaisList.forEach(r => {
-                text += `- Relais n°${r.number} : ${r.duration}\n`;
+            
+            // Pour l'export, on remet dans l'ordre chronologique (du 1 au dernier)
+            const chronologicalList = [...relaisList].reverse();
+            chronologicalList.forEach(r => {
+                text += `- Relais n°${r.number} : ${r.duration} (${r.distance} km)\n`;
             });
 
             if (navigator.share) {
                 navigator.share({ title: 'Run & Bike', text: text }).catch(() => {});
             } else {
-                alert(text);
+                // Fallback si le partage natif n'est pas dispo
+                prompt("Copiez vos résultats :", text);
             }
         }
 
@@ -383,7 +402,7 @@
                 currentSpeedEl.textContent = "0.0";
                 relaisChronoEl.textContent = "00:00:00";
                 relaisTitleEl.textContent = "Relais actuel";
-                historyListEl.innerHTML = '<div style="color: #64748b; text-align: center; font-size: 0.75rem;">Aucun relais enregistré</div>';
+                historyListEl.innerHTML = '<div style="color: #64748b; text-align: center; font-size: 0.75rem; margin-top: 10px;">Aucun relais enregistré</div>';
                 
                 gpsStatusEl.textContent = "Recherche GPS...";
                 gpsStatusEl.className = "gps-badge";
