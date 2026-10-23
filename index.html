@@ -29,15 +29,8 @@
             gap: 2px;
         }
         h1 {
-            font-size: 1rem;
+            font-size: 0.95rem;
             color: #38bdf8;
-        }
-        .gps-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            width: 100%;
         }
         .gps-badge {
             font-size: 0.65rem;
@@ -54,9 +47,12 @@
             background: #7f1d1d;
             color: #f87171;
         }
+        /* Masqué par défaut, apparaît uniquement si le GPS décroche */
         .retry-btn {
-            padding: 4px 12px;
-            font-size: 0.75rem;
+            display: none;
+            margin-top: 2px;
+            padding: 3px 10px;
+            font-size: 0.7rem;
             font-weight: bold;
             background: #b91c1c;
             color: white;
@@ -71,7 +67,7 @@
         }
         .card {
             background: #1e293b;
-            padding: 6px;
+            padding: 5px;
             border-radius: 8px;
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.05);
@@ -89,6 +85,24 @@
         .card.full {
             grid-column: span 2;
         }
+        /* Le gros bouton de relais placé haut et bien visible */
+        .big-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            box-shadow: 0 3px 8px rgba(2, 132, 199, 0.3);
+            margin: 4px 0;
+        }
+        .big-btn:active {
+            transform: scale(0.98);
+        }
+        /* Historique occupant toute la fin de la page */
         .history-section {
             background: #1e293b;
             border-radius: 8px;
@@ -97,7 +111,6 @@
             display: flex;
             flex-direction: column;
             min-height: 0;
-            margin: 4px 0;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
         .history-title {
@@ -124,33 +137,14 @@
             padding: 5px 8px;
             border-radius: 6px;
         }
-        .btn-container {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .big-btn {
-            width: 100%;
-            padding: 12px;
-            font-size: 1rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            color: white;
-            background: linear-gradient(135deg, #0284c7, #0369a1);
-            box-shadow: 0 3px 8px rgba(2, 132, 199, 0.3);
-        }
-        .big-btn:active {
-            transform: scale(0.98);
-        }
         .footer-actions {
             display: flex;
             gap: 4px;
+            margin-top: 4px;
         }
         .small-btn {
             flex: 1;
-            padding: 6px;
+            padding: 5px;
             font-size: 0.7rem;
             border: none;
             border-radius: 6px;
@@ -169,10 +163,8 @@
 
     <header>
         <h1>Run & Bike Tracker</h1>
-        <div class="gps-container">
-            <div class="gps-badge" id="gps-status">Recherche GPS...</div>
-            <button class="retry-btn" id="gps-retry-btn" onclick="forceGPS()">⚠️ Relancer le GPS</button>
-        </div>
+        <div class="gps-badge" id="gps-status">Recherche GPS...</div>
+        <button class="retry-btn" id="gps-retry-btn" onclick="forceGPS()">⚠️ Relancer le GPS</button>
     </header>
 
     <div class="dashboard">
@@ -194,16 +186,15 @@
         </div>
     </div>
 
-    <!-- Historique des relais scrollable -->
+    <!-- Le bouton de passage de relais est maintenant juste sous le tableau de bord -->
+    <button class="big-btn" id="btn-toggle" onclick="handleMainAction()">DÉMARRER LA COURSE</button>
+
+    <!-- Historique des relais scrollable occupant la fin de page -->
     <div class="history-section">
-        <div class="history-title">Historique des relais (du plus récent au plus ancien)</div>
+        <div class="history-title">Historique des relais</div>
         <div class="history-list" id="history-list">
             <div style="color: #64748b; text-align: center; font-size: 0.7rem; margin-top: 5px;">Aucun relais enregistré</div>
         </div>
-    </div>
-
-    <div class="btn-container">
-        <button class="big-btn" id="btn-toggle" onclick="handleMainAction()">DÉMARRER LA COURSE</button>
         <div class="footer-actions">
             <button class="small-btn" onclick="exportData()">📥 Exporter</button>
             <button class="small-btn danger" onclick="resetAll()">Réinitialiser</button>
@@ -257,6 +248,7 @@
         function forceGPS() {
             gpsStatusEl.textContent = "Recherche GPS...";
             gpsStatusEl.className = "gps-badge";
+            gpsRetryBtn.style.display = "none";
             if (watchId !== null) navigator.geolocation.clearWatch(watchId);
             startGPS();
         }
@@ -265,6 +257,7 @@
             if (!navigator.geolocation) {
                 gpsStatusEl.textContent = "GPS non supporté";
                 gpsStatusEl.className = "gps-badge error";
+                gpsRetryBtn.style.display = "block";
                 return;
             }
 
@@ -274,6 +267,7 @@
                 (position) => {
                     gpsStatusEl.textContent = "GPS Connecté (±" + Math.round(position.coords.accuracy) + "m)";
                     gpsStatusEl.className = "gps-badge active";
+                    gpsRetryBtn.style.display = "none"; // Cache le bouton si le GPS fonctionne
 
                     const { latitude, longitude, speed } = position.coords;
                     if (speed !== null && speed >= 0) {
@@ -293,6 +287,7 @@
                 (error) => {
                     gpsStatusEl.textContent = "GPS déconnecté / Erreur";
                     gpsStatusEl.className = "gps-badge error";
+                    gpsRetryBtn.style.display = "block"; // Affiche le bouton uniquement en cas de panne
                 },
                 options
             );
@@ -324,7 +319,6 @@
                 const relaisDistanceKmVal = (totalDistance - currentRelaisStartDistance) / 1000;
                 const relaisDistanceKmStr = relaisDistanceKmVal.toFixed(2);
                 
-                // Calcul de la vitesse moyenne du relais (km/h)
                 let relaisSpeed = 0;
                 if (relaisDurationSec > 0 && relaisDistanceKmVal > 0) {
                     relaisSpeed = (relaisDistanceKmVal / (relaisDurationSec / 3600)).toFixed(1);
@@ -407,6 +401,7 @@
                 
                 gpsStatusEl.textContent = "Recherche GPS...";
                 gpsStatusEl.className = "gps-badge";
+                gpsRetryBtn.style.display = "none";
                 toggleBtn.textContent = "DÉMARRER LA COURSE";
                 startGPS();
             }
